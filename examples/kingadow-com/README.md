@@ -60,13 +60,15 @@ retitled to own it, and the other 2 now link to it.
 
 ![13 weeks before and after weekly posts: times shown in Google 250 to 457 a week (+83%), clicks 3.8 to 6.3 (+66%), site page views 143 to 192 (+34%)](images/results.jpg)
 
-13 weeks before weekly posts began compared with the 13 weeks after, per week:
+13 weeks before weekly posts began compared with the 13 weeks after, per week, for the whole of kingadow.com:
 
 | | May 4 to Jul 27 | Aug 3 to Oct 26 | Change |
 |---|---|---|---|
 | Times shown in Google, per week | 250 | 457 | +83% |
 | Clicks from Google, per week | 3.8 | 6.3 | +66% |
 | Site page views, per week | 143 | 192 | +34% |
+
+The blog posts on their own went from about 115 to 370 times shown in Google a week, roughly 3 times as often.
 
 An honest note: Google shows the blog more often, and clicks are still small, about 6 a week. More
 views in search have not yet turned into many more visits. Growth like this also comes from simply

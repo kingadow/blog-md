@@ -4,7 +4,7 @@
 
 ![The upcoming posts list on kingadow.com: the next 6 scheduled posts with their dates, a preview of the selected post, and a subscribe box underneath](examples/kingadow-com/images/ticker.jpg)
 
-You know things your future clients search for every day. The setup used to need a developer: a site Google can read, topics people search, a post every week, and the emails around it. Claude can do the technical part now, so you can build the whole system yourself. It has run every week on [kingadow.com](https://kingadow.com/blog) since July 30, 2026, and in the 13 weeks after weekly posts began, the blog was shown in Google 83% more often than in the 13 weeks before.
+You know things your future clients search for every day. The setup used to need a developer: a site Google can read, topics people search, a post every week, and the emails around it. Claude can do the technical part now, so you can build the whole system yourself. It has run every week on [kingadow.com](https://kingadow.com/blog) since July 30, 2026, and in the 13 weeks after weekly posts began, Google showed the whole site 83% more often than in the 13 weeks before, and the blog posts alone about 3 times as often.
 
 **[Download the kit (zip)](https://github.com/kingadow/blog-md/releases/latest/download/blog-md.zip)**, or clone the repo. Then pick your path: **No blog yet** or **You have a site**. Steps 1 and 3 are the same for both.
 
