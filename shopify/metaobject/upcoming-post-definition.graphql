@@ -1,0 +1,78 @@
+# The "Upcoming post" metaobject definition.
+#
+# Run this once per store. It creates the structure the upcoming posts list
+# reads: one entry per scheduled post, with a title, a date, a short excerpt,
+# an image and the post's future address.
+#
+# Admin GraphQL API, version 2026-10. Needs the write_metaobject_definitions
+# scope. Prefer clicking? The same thing, step by step in the Shopify admin,
+# is in admin-steps.md next to this file.
+#
+# Storefront access is PUBLIC_READ, the same as the admin default
+# ("Storefronts" ticked). The docs do not say whether a theme can show
+# entries without it, so it is set on.
+#
+# Ask Claude: "Run shopify/metaobject/upcoming-post-definition.graphql on my
+# development store and show me the result."
+
+mutation CreateUpcomingPostDefinition {
+  metaobjectDefinitionCreate(
+    definition: {
+      name: "Upcoming post"
+      type: "upcoming_post"
+      description: "A post scheduled on the blog. The upcoming posts section lists entries until their date."
+      displayNameKey: "title"
+      access: { storefront: PUBLIC_READ }
+      fieldDefinitions: [
+        { key: "title", name: "Title", type: "single_line_text_field", required: true }
+        {
+          key: "date"
+          name: "Publish date"
+          type: "date"
+          required: true
+          description: "The day the post goes live. The entry leaves the list on this day."
+        }
+        {
+          key: "excerpt"
+          name: "Excerpt"
+          type: "multi_line_text_field"
+          description: "1 or 2 sentences about the post, under 150 characters."
+        }
+        {
+          key: "image"
+          name: "Image"
+          type: "file_reference"
+          validations: [{ name: "file_type_options", value: "[\"Image\"]" }]
+        }
+        {
+          key: "url"
+          name: "Post address"
+          type: "url"
+          description: "Where the post will live, for example https://your-store.com/blogs/news/your-post"
+        }
+      ]
+    }
+  ) {
+    metaobjectDefinition {
+      id
+      type
+      name
+      access {
+        storefront
+      }
+      fieldDefinitions {
+        key
+        name
+        required
+        type {
+          name
+        }
+      }
+    }
+    userErrors {
+      field
+      message
+      code
+    }
+  }
+}

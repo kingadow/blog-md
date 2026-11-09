@@ -18,6 +18,7 @@ You know things your future clients search for every day. The setup used to need
 4. **Finish the setup.**
    - **No blog yet:** put the site online with the [starter's steps](starter/README.md) (GitHub and Netlify, both free). Once it's online, connect Search Console and Ahrefs Webmaster Tools with steps 1, 2 and 6 of [part 1](docs/1-get-your-site-ready.md).
    - **You have a site:** add the automation pieces from [part 4](docs/4-automate.md): the date gate, the upcoming posts list, the weekly build and the publish-day email.
+   - **Your site is a Shopify store:** follow [part 4 on Shopify](docs/4-automate-shopify.md): Shopify's own scheduling, an upcoming posts section for your theme, and the publish-day email from your blog's feed.
 
 [Part 2](docs/2-decide-what-to-write.md) explains how topics get picked, if you want to do it by hand or understand what the skill does.
 
@@ -66,9 +67,11 @@ Every account and tool the 4 parts use, in one list. Claude does the technical w
 | Google Chrome | Free | Making the PNG copy of each featured image (part 3). Any browser works for everything else. |
 | An email tool for subscribers | Optional | The subscribe box and the publish-day email (part 4). The starter is set up for Klaviyo, which has a free plan for small lists; the starter README says how to use another tool. |
 | Your own domain name | Optional, paid | A custom address. Netlify gives you a free address to start. |
+| A Shopify store | Paid Shopify plan | The Shopify path: your store's blog in place of the starter site ([part 4 on Shopify](docs/4-automate-shopify.md)) |
+| A Shopify development store | Free, made in the Shopify Dev Dashboard (a Shopify Partner account opens it too) | Testing the Shopify path before your live store |
 | [Apify](https://apify.com) | Optional, paid after the free monthly credit | Checking page one for many search terms at once (part 2). A private browser window does the same for a few terms. |
 
-If you already have a site, you may not need Node.js, GitHub or Netlify: [part 4](docs/4-automate.md) shows which pieces to copy.
+If you already have a site, you may not need Node.js, GitHub or Netlify: [part 4](docs/4-automate.md) shows which pieces to copy. A Shopify store needs GitHub for the publish-day email only.
 
 ## Where it fits
 

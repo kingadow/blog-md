@@ -1,0 +1,87 @@
+name: Publish-day email
+
+# For a Shopify blog. Copy this file to .github/workflows/blog-email.yml in
+# your email repository (shopify/email/README.md in the blog-md kit).
+#
+# Once a week on your publish day, it reads your blog's Atom feed. If a post
+# went live today, it creates a Klaviyo campaign for it, scheduled for 09:15
+# in your time zone (both set in src/site.config.mjs). On a week with no new
+# post it ends without sending anything.
+#
+# Shopify publishes a scheduled post at the time you gave it, so there is no
+# build to wait for. Schedule each post for 06:00 on your publish day. This
+# workflow starts after that and checks the feed every 2 minutes for up to
+# 40 minutes, in case the post is a little late.
+#
+# A normal publish day, New York time:
+#   06:00  Shopify publishes the post
+#   07:23  this workflow starts (12:23 UTC), finds the post, schedules the email
+#   09:15  Klaviyo sends it
+#
+# Needs 2 secrets (Settings > Secrets and variables > Actions):
+#   KLAVIYO_PRIVATE_KEY  a Klaviyo private key with Campaigns full,
+#                        Templates full and Lists read access
+#   FEED                 your blog's feed: https://your-store.com/blogs/news.atom
+#                        (your store address, then /blogs/, your blog's
+#                        handle, and .atom)
+# Optional: LIST_ID, if you would rather keep the list ID out of
+# src/site.config.mjs.
+
+on:
+  schedule:
+    # WHEN IT RUNS
+    #
+    # The 5 parts, left to right: the minute (23), the hour in UTC (12), any
+    # day of the month, any month, and the day of the week. Day numbers:
+    # 0 Sunday, 1 Monday, 2 Tuesday, 3 Wednesday, 4 Thursday, 5 Friday,
+    # 6 Saturday. This line runs every Thursday at 12:23 UTC, which is 7:23am
+    # or 8:23am in New York depending on daylight saving.
+    #
+    # To change the day, change only the last number. Keep the minute off the
+    # hour: runs set on the hour wait longest in GitHub's queue, and scheduled
+    # runs can start late. The run must start after your posts' publish time
+    # and before `sendTime`. Outside the Americas, ask Claude to move the hour.
+    - cron: "23 12 * * 4" # <- the live line: the last number is your publish day
+
+  # The "Run workflow" button. Dry run is on by default: it shows the plan in
+  # the log and creates nothing in Klaviyo.
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: show the plan, create nothing in Klaviyo"
+        type: boolean
+        default: true
+
+# Never 2 at once, so 2 runs on the same day cannot both create a campaign.
+concurrency:
+  group: blog-email
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # No `npm install` needed: the script uses only what comes with Node.
+      - name: Create and schedule the email
+        env:
+          KLAVIYO_PRIVATE_KEY: ${{ secrets.KLAVIYO_PRIVATE_KEY }}
+          FEED: ${{ secrets.FEED }}
+          LIST_ID: ${{ secrets.LIST_ID }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          if [ -z "$FEED" ]; then
+            echo "::error::The FEED secret is missing. Add your blog's feed address, for example https://your-store.com/blogs/news.atom"
+            exit 1
+          fi
+          if [ "$DRY_RUN" = "true" ]; then
+            node scripts/blog-email/send.mjs --dry-run
+          else
+            node scripts/blog-email/send.mjs
+          fi

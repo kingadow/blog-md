@@ -1,0 +1,158 @@
+# Schedule a blog post on Shopify, with its SEO title, meta description and
+# image alt text.
+#
+# Admin GraphQL API, version 2026-10. Scopes: read_content and write_content.
+# Claude runs these through a Shopify connector or an app you made in the Dev
+# Dashboard (see docs/4-automate-shopify.md, step 2). Try them on a
+# development store first.
+#
+# The order:
+#   1. FindBlog: get the blog's ID and handle (once; note them in BLOG.md).
+#   2. CreatePostHidden: create the post hidden, for your review.
+#   3. SchedulePost: after you approve, give it its publish time.
+#   4. CheckPost: confirm it is scheduled. Run it right after step 3.
+#   5. HidePost: take a scheduled post back to hidden, if plans change.
+#
+# Claude never runs step 3 without your yes for that post and that date.
+#
+# What the docs leave open: they describe isPublished ("whether or not the
+# article should be visible") and publishDate ("when the article should
+# become visible"), and show no example with a future date. Step 4 is how you
+# find out what your store did: a scheduled post reads back with isPublished
+# true and publishedAt in the future, and is missing from the blog page until
+# that time. Check this once on a development store.
+
+
+# 1. The blogs in the store. Most stores have one, with the handle "news".
+query FindBlog {
+  blogs(first: 10) {
+    nodes {
+      id
+      handle
+      title
+    }
+  }
+}
+
+
+# 2. Create the post, hidden. Variables (example):
+# {
+#   "article": {
+#     "blogId": "gid://shopify/Blog/YOUR_BLOG_ID",
+#     "title": "How to care for linen",
+#     "handle": "how-to-care-for-linen",
+#     "author": { "name": "Your Name" },
+#     "body": "<p>The post as HTML.</p>",
+#     "summary": "<p>1 or 2 sentences for the blog page and the email.</p>",
+#     "image": {
+#       "url": "https://example.com/images/how-to-care-for-linen.png",
+#       "altText": "Folded linen napkins on a wooden table"
+#     },
+#     "tags": ["Care guides"],
+#     "isPublished": false,
+#     "metafields": [
+#       { "namespace": "global", "key": "title_tag", "type": "single_line_text_field",
+#         "value": "How to care for linen: 4 steps that keep it soft" },
+#       { "namespace": "global", "key": "description_tag", "type": "single_line_text_field",
+#         "value": "Wash cool, dry flat, iron damp, store loose. Here is why each step matters." }
+#     ]
+#   }
+# }
+# The image URL must be a public address Shopify can download (a PNG or JPG).
+mutation CreatePostHidden($article: ArticleCreateInput!) {
+  articleCreate(article: $article) {
+    article {
+      id
+      handle
+      title
+      isPublished
+      publishedAt
+      blog {
+        handle
+      }
+      image {
+        url
+        altText
+      }
+      seoTitle: metafield(namespace: "global", key: "title_tag") {
+        value
+      }
+      seoDescription: metafield(namespace: "global", key: "description_tag") {
+        value
+      }
+    }
+    userErrors {
+      code
+      field
+      message
+    }
+  }
+}
+
+
+# 3. Schedule it. Only after the author says yes. Variables (example):
+# {
+#   "id": "gid://shopify/Article/YOUR_ARTICLE_ID",
+#   "article": { "isPublished": true, "publishDate": "2026-11-26T06:00:00-05:00" }
+# }
+# Use 06:00 on your publish day in your store's time zone (Settings > General).
+# The publish-day email runs after that time.
+mutation SchedulePost($id: ID!, $article: ArticleUpdateInput!) {
+  articleUpdate(id: $id, article: $article) {
+    article {
+      id
+      handle
+      isPublished
+      publishedAt
+    }
+    userErrors {
+      code
+      field
+      message
+    }
+  }
+}
+
+
+# 4. Read it back. Variables: { "id": "gid://shopify/Article/YOUR_ARTICLE_ID" }
+query CheckPost($id: ID!) {
+  article(id: $id) {
+    id
+    title
+    handle
+    isPublished
+    publishedAt
+    blog {
+      handle
+    }
+    image {
+      url
+      altText
+    }
+    seoTitle: metafield(namespace: "global", key: "title_tag") {
+      value
+    }
+    seoDescription: metafield(namespace: "global", key: "description_tag") {
+      value
+    }
+  }
+}
+
+
+# 5. Hide it again. Variables:
+# { "id": "gid://shopify/Article/YOUR_ARTICLE_ID", "article": { "isPublished": false } }
+# Never run this on a post that is already live: hiding it takes the page down.
+mutation HidePost($id: ID!, $article: ArticleUpdateInput!) {
+  articleUpdate(id: $id, article: $article) {
+    article {
+      id
+      isPublished
+      publishedAt
+    }
+    userErrors {
+      code
+      field
+      message
+    }
+  }
+}

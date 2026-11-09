@@ -45,6 +45,8 @@ You can copy the pieces into it. Ask Claude:
 
 The pieces are small: the date gate is one file, and the upcoming posts list is one component.
 
+On a Shopify store, use [Part 4 on Shopify](4-automate-shopify.md): Shopify schedules posts itself, and the kit has a theme section for the upcoming posts list.
+
 ## What goes wrong, and what the starter does
 
 | What happens | What the starter does |

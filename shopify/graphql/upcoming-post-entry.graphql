@@ -1,0 +1,109 @@
+# Add a scheduled post to the upcoming posts list, and clean up old entries.
+#
+# Admin GraphQL API, version 2026-10. Scopes: write_files, read_metaobjects
+# and write_metaobjects. The definition must exist first
+# (shopify/metaobject/upcoming-post-definition.graphql).
+#
+# The order:
+#   1. UploadImage: put the post's image in Files, to get its ID.
+#   2. CreateUpcomingPost: the entry the section shows.
+#   3. ListUpcomingPosts: what is in the list now.
+#   4. DeleteUpcomingPost: remove an entry whose date has passed, or a post
+#      that was called off.
+#
+# The section hides an entry on its date by itself, so step 4 is tidying.
+# Once a month is enough.
+
+
+# 1. Upload the image. Variables (example):
+# {
+#   "files": [{
+#     "originalSource": "https://example.com/images/how-to-care-for-linen.png",
+#     "alt": "Folded linen napkins on a wooden table",
+#     "contentType": "IMAGE"
+#   }]
+# }
+# Files are processed after the call returns. If fileStatus is not READY yet,
+# the ID still works in step 2.
+mutation UploadImage($files: [FileCreateInput!]!) {
+  fileCreate(files: $files) {
+    files {
+      id
+      alt
+      fileStatus
+    }
+    userErrors {
+      code
+      field
+      message
+    }
+  }
+}
+
+
+# 2. Create the entry. Variables (example):
+# {
+#   "metaobject": {
+#     "type": "upcoming_post",
+#     "handle": "how-to-care-for-linen",
+#     "fields": [
+#       { "key": "title", "value": "How to care for linen" },
+#       { "key": "date", "value": "2026-11-26" },
+#       { "key": "excerpt", "value": "Linen gets softer with every wash if you treat it right. 4 steps." },
+#       { "key": "image", "value": "gid://shopify/MediaImage/YOUR_FILE_ID" },
+#       { "key": "url", "value": "https://your-store.com/blogs/news/how-to-care-for-linen" }
+#     ]
+#   }
+# }
+# Use the article's handle as the entry's handle, so they are easy to match.
+# The date is the same day as the article's publish time.
+mutation CreateUpcomingPost($metaobject: MetaobjectCreateInput!) {
+  metaobjectCreate(metaobject: $metaobject) {
+    metaobject {
+      id
+      handle
+      displayName
+      fields {
+        key
+        value
+      }
+    }
+    userErrors {
+      code
+      field
+      message
+    }
+  }
+}
+
+
+# 3. Every entry, with its date.
+query ListUpcomingPosts {
+  metaobjects(type: "upcoming_post", first: 50) {
+    nodes {
+      id
+      handle
+      displayName
+      date: field(key: "date") {
+        value
+      }
+      url: field(key: "url") {
+        value
+      }
+    }
+  }
+}
+
+
+# 4. Delete one entry. Variables: { "id": "gid://shopify/Metaobject/YOUR_ENTRY_ID" }
+# This deletes the list entry only. The blog post is untouched.
+mutation DeleteUpcomingPost($id: ID!) {
+  metaobjectDelete(id: $id) {
+    deletedId
+    userErrors {
+      code
+      field
+      message
+    }
+  }
+}

@@ -1,0 +1,367 @@
+{%- comment -%}
+  Upcoming posts: the "ticker" for a Shopify blog.
+
+  Lists your next scheduled posts, each with its date, image, title and
+  excerpt, and a subscribe box under them. A post leaves the list on the day
+  it goes live.
+
+  Where the posts come from: Shopify keeps scheduled blog posts out of the
+  theme until their time, so this section cannot read them from the blog.
+  It reads the metaobject "upcoming_post" instead: one entry per scheduled
+  post, with a title, date, excerpt, image and url. The definition is in
+  shopify/metaobject/ in the blog-md kit. Claude adds an entry each time it
+  schedules a post.
+
+  Why the dates are checked twice: Shopify can serve a stored copy of a page,
+  so a date check in Liquid can be a day or more old. The script at the end
+  checks each date again in the visitor's browser and hides entries whose
+  day has come. Without the script, the Liquid check still applies.
+
+  The url field is the post's future address. Before its date the page does
+  not exist yet, so the list shows no link. Claude uses the url to match an
+  entry to its post and to delete old entries.
+
+  The subscribe box uses Shopify's own newsletter form. A signup becomes a
+  customer who accepts email marketing, tagged "newsletter" and "blog". To
+  send them your posts from Klaviyo, turn on Klaviyo's sync of Shopify email
+  subscribers (docs/4-automate-shopify.md, step 5).
+
+  Add it: Online Store > Themes > Edit code > Sections > Add a new section,
+  name it upcoming-posts, paste this file. Then in the theme editor, open
+  your blog page and click Add section > Upcoming posts.
+
+  The look: change the variables at the top of the style block. They start
+  from your theme's text color, so the section fits most themes as it is.
+{%- endcomment -%}
+
+{%- liquid
+  assign today = 'now' | date: '%Y%m%d' | plus: 0
+  assign keys = ''
+  for entry in metaobjects.upcoming_post.values
+    if entry.date.value == blank
+      continue
+    endif
+    assign day = entry.date.value | date: '%Y%m%d' | plus: 0
+    if day > today
+      assign keys = keys | append: day | append: '-' | append: forloop.index0 | append: ','
+    endif
+  endfor
+  assign sorted = keys | split: ',' | sort
+  assign max = section.settings.count
+  assign form_id = 'UpcomingPostsSubscribe-' | append: section.id
+-%}
+
+{%- if sorted.size > 0 or section.settings.hide_when_empty == false -%}
+<section
+  class="upcoming-posts"
+  id="UpcomingPosts-{{ section.id }}"
+  data-upcoming-posts
+  data-count="{{ max }}"
+  data-hide-when-empty="{{ section.settings.hide_when_empty }}"
+  aria-labelledby="UpcomingPostsHeading-{{ section.id }}"
+>
+  <div class="upcoming-posts__inner">
+    <h2 class="upcoming-posts__heading" id="UpcomingPostsHeading-{{ section.id }}">
+      {{- section.settings.heading | escape -}}
+    </h2>
+    {%- if section.settings.intro != blank -%}
+      <p class="upcoming-posts__intro">{{ section.settings.intro | escape }}</p>
+    {%- endif -%}
+
+    <ol class="upcoming-posts__list" data-upcoming-list>
+      {%- assign shown = 0 -%}
+      {%- for key in sorted -%}
+        {%- assign want = key | split: '-' | last | plus: 0 -%}
+        {%- for entry in metaobjects.upcoming_post.values -%}
+          {%- if forloop.index0 == want -%}
+            <li
+              class="upcoming-posts__item"
+              data-upcoming-item
+              data-date="{{ entry.date.value | date: '%Y-%m-%d' }}"
+              {% if shown >= max %}hidden{% endif %}
+            >
+              {%- if entry.image.value != blank -%}
+                <div class="upcoming-posts__media">
+                  {{-
+                    entry.image.value
+                    | image_url: width: 720
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '240, 360, 480, 720',
+                      sizes: '(min-width: 750px) 240px, 100vw',
+                      class: 'upcoming-posts__image'
+                  -}}
+                </div>
+              {%- endif -%}
+              <div class="upcoming-posts__text">
+                <time class="upcoming-posts__date" datetime="{{ entry.date.value | date: '%Y-%m-%d' }}">
+                  {{- entry.date.value | date: format: 'abbreviated_date' -}}
+                </time>
+                <h3 class="upcoming-posts__title">{{ entry.title.value | escape }}</h3>
+                {%- if entry.excerpt.value != blank -%}
+                  <p class="upcoming-posts__excerpt">{{ entry.excerpt.value | escape }}</p>
+                {%- endif -%}
+              </div>
+            </li>
+            {%- assign shown = shown | plus: 1 -%}
+            {%- break -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endfor -%}
+    </ol>
+
+    <p class="upcoming-posts__empty" data-upcoming-empty {% if sorted.size > 0 %}hidden{% endif %}>
+      {{- section.settings.empty_text | escape -}}
+    </p>
+
+    {%- if section.settings.show_subscribe -%}
+      <div class="upcoming-posts__subscribe">
+        {%- if section.settings.subscribe_heading != blank -%}
+          <p class="upcoming-posts__subscribe-heading" id="{{ form_id }}-label">
+            {{- section.settings.subscribe_heading | escape -}}
+          </p>
+        {%- endif -%}
+        {%- form 'customer', id: form_id, class: 'upcoming-posts__form' -%}
+          <input type="hidden" name="contact[tags]" value="newsletter,blog">
+          <div class="upcoming-posts__field">
+            <label class="upcoming-posts__label" for="{{ form_id }}-email">Email</label>
+            <input
+              class="upcoming-posts__input"
+              id="{{ form_id }}-email"
+              type="email"
+              name="contact[email]"
+              value="{{ form.email }}"
+              autocomplete="email"
+              autocorrect="off"
+              autocapitalize="off"
+              required
+              {% if form.errors %}
+                aria-invalid="true" aria-describedby="{{ form_id }}-error"
+              {% endif %}
+            >
+            <button class="upcoming-posts__button" type="submit">
+              {{- section.settings.button_label | escape -}}
+            </button>
+          </div>
+          {%- if form.errors -%}
+            <p class="upcoming-posts__message upcoming-posts__message--error" id="{{ form_id }}-error" role="alert">
+              {{ form.errors.translated_fields.email | capitalize }}
+              {{ form.errors.messages.email }}
+            </p>
+          {%- endif -%}
+          {%- if form.posted_successfully? -%}
+            <p class="upcoming-posts__message upcoming-posts__message--success" role="status">
+              {{- section.settings.success_message | escape -}}
+            </p>
+          {%- endif -%}
+        {%- endform -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<script>
+  (function () {
+    // Hides entries whose day has come, by the visitor's own date, then
+    // shows the first `count` entries that are left. See the note at the top.
+    var root = document.getElementById("UpcomingPosts-{{ section.id }}");
+    if (!root) return;
+    var now = new Date();
+    var pad = function (n) { return String(n).padStart(2, "0"); };
+    var today = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+    var count = parseInt(root.getAttribute("data-count"), 10) || 6;
+    var left = 0;
+    root.querySelectorAll("[data-upcoming-item]").forEach(function (item) {
+      if (item.getAttribute("data-date") <= today) {
+        item.remove();
+        return;
+      }
+      item.hidden = left >= count;
+      left += 1;
+    });
+    if (left === 0) {
+      if (root.getAttribute("data-hide-when-empty") === "true" && !root.querySelector("[role=alert], [role=status]")) {
+        root.hidden = true;
+      } else {
+        var empty = root.querySelector("[data-upcoming-empty]");
+        if (empty) empty.hidden = false;
+      }
+    }
+  })();
+</script>
+{%- endif -%}
+
+<style>
+  .upcoming-posts {
+    /* Change these to match your brand. */
+    --upcoming-text: currentColor;
+    --upcoming-muted: color-mix(in srgb, currentColor 68%, transparent);
+    --upcoming-border: color-mix(in srgb, currentColor 16%, transparent);
+    --upcoming-surface: color-mix(in srgb, currentColor 4%, transparent);
+    --upcoming-accent: currentColor;
+    --upcoming-accent-text: #fff;
+    --upcoming-radius: 8px;
+    --upcoming-gap: 1.25rem;
+    --upcoming-width: 72rem;
+
+    color: var(--upcoming-text);
+    padding: 3rem 1rem;
+  }
+  .upcoming-posts[hidden],
+  .upcoming-posts [hidden] { display: none !important; }
+  .upcoming-posts__inner { max-width: var(--upcoming-width); margin: 0 auto; }
+  .upcoming-posts__heading { margin: 0 0 0.5rem; }
+  .upcoming-posts__intro,
+  .upcoming-posts__empty { margin: 0 0 var(--upcoming-gap); color: var(--upcoming-muted); }
+  .upcoming-posts__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--upcoming-gap);
+  }
+  .upcoming-posts__item {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--upcoming-border);
+    border-radius: var(--upcoming-radius);
+    background: var(--upcoming-surface);
+  }
+  @media (min-width: 750px) {
+    .upcoming-posts__item { grid-template-columns: 240px 1fr; align-items: start; }
+  }
+  .upcoming-posts__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1200 / 630;
+    object-fit: cover;
+    border-radius: calc(var(--upcoming-radius) - 2px);
+  }
+  .upcoming-posts__date {
+    display: block;
+    font-size: 0.875em;
+    color: var(--upcoming-muted);
+    margin-bottom: 0.25rem;
+  }
+  .upcoming-posts__title { margin: 0 0 0.375rem; font-size: 1.125em; line-height: 1.3; }
+  .upcoming-posts__excerpt { margin: 0; color: var(--upcoming-muted); }
+  .upcoming-posts__subscribe {
+    margin-top: calc(var(--upcoming-gap) * 1.5);
+    padding-top: var(--upcoming-gap);
+    border-top: 1px solid var(--upcoming-border);
+  }
+  .upcoming-posts__subscribe-heading { margin: 0 0 0.75rem; font-weight: 600; }
+  .upcoming-posts__field { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .upcoming-posts__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .upcoming-posts__input {
+    flex: 1 1 16rem;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid var(--upcoming-border);
+    border-radius: var(--upcoming-radius);
+  }
+  .upcoming-posts__button {
+    min-height: 44px;
+    padding: 0.5rem 1.25rem;
+    font: inherit;
+    color: var(--upcoming-accent-text);
+    background: var(--upcoming-accent);
+    border: 0;
+    border-radius: var(--upcoming-radius);
+    cursor: pointer;
+  }
+  .upcoming-posts__input:focus-visible,
+  .upcoming-posts__button:focus-visible { outline: 2px solid var(--upcoming-accent); outline-offset: 2px; }
+  .upcoming-posts__message { margin: 0.75rem 0 0; }
+  .upcoming-posts__message--error { color: #b42318; }
+  .upcoming-posts__message--success { color: #067647; }
+</style>
+
+{% schema %}
+{
+  "name": "Upcoming posts",
+  "tag": "div",
+  "class": "section-upcoming-posts",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Upcoming posts"
+    },
+    {
+      "type": "text",
+      "id": "intro",
+      "label": "Intro line",
+      "default": "What's on the schedule. A new post goes live every week."
+    },
+    {
+      "type": "range",
+      "id": "count",
+      "label": "Posts to show",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "default": 6
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_when_empty",
+      "label": "Hide the section when nothing is scheduled",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "empty_text",
+      "label": "Text when nothing is scheduled",
+      "default": "The next post is on its way. Subscribe to get it by email."
+    },
+    {
+      "type": "header",
+      "content": "Subscribe box"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_subscribe",
+      "label": "Show the subscribe box",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "subscribe_heading",
+      "label": "Subscribe heading",
+      "default": "Get each new post by email"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Subscribe"
+    },
+    {
+      "type": "text",
+      "id": "success_message",
+      "label": "Thank-you message",
+      "default": "Thanks for subscribing. The next post comes to your inbox."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Upcoming posts"
+    }
+  ]
+}
+{% endschema %}

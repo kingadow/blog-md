@@ -140,3 +140,30 @@ Same steps, with these differences:
 ## Builds and hosting
 
 Each push can trigger a deploy. If the host limits builds a month, batch: several posts and link edits in one push.
+
+## Publishing to Shopify
+
+When BLOG.md says the site is a Shopify store, this stage writes the post to Shopify through the Admin API, using a Shopify connector or the store's Dev Dashboard app ([docs/4-automate-shopify.md](../../../docs/4-automate-shopify.md), step 2). The rules above stay: the author approves every post, and nothing goes live without that yes. The calls are in the kit's `shopify/graphql` folder.
+
+| Starter | Shopify |
+|---|---|
+| `draft: true` | Hidden: `isPublished: false` |
+| `draft: false` + a future `date` | Scheduled: `isPublished: true` and `publishDate` at 06:00 on the publish day, in the store's time zone |
+| `title`, `slug`, `excerpt` | `title`, `handle`, `summary` |
+| `metaTitle`, `metaDescription` | The metafields `global.title_tag` and `global.description_tag`, type `single_line_text_field` |
+| `image`, `imageAlt` | `image.url` and `image.altText` |
+| `category` | A tag |
+| Upcoming Posts reads the post | An `upcoming_post` entry, added by this stage |
+
+**Steps:**
+
+1. **Validate** the same fields as step 1 above. The body goes in as HTML, so convert `draft.md` to clean HTML: headings, paragraphs, lists, links, images with alt text.
+2. **The image** must be a PNG or JPG at a public address Shopify can download. If it isn't online yet, ask the author to upload it on the Files page in the admin and give you its address. Shopify stores its own copy.
+3. **Create the post hidden** (`CreatePostHidden`), with the SEO title, meta description, image alt text and tags. Record the article ID and handle in `publish.md`.
+4. **Check links to the store's own pages.** A linked post must be live, or scheduled no later than this one, on this post's date. Check each target with `CheckPost`. A link to a post that is hidden or later keeps this post hidden.
+5. **Report** to the author: where to read it in the admin (**Content** > **Blog posts**), its status (hidden), the planned date, and anything outstanding.
+6. **After the author approves** this post and this date: schedule it (`SchedulePost`), read it back (`CheckPost`: `isPublished` true, `publishedAt` on the date), then add its list entry (`UploadImage`, then `CreateUpcomingPost`, with the article's handle as the entry's handle). Record both IDs in `publish.md`.
+
+**Never, without the author's yes for that exact change:** schedule or publish a post, publish anything immediately, set a live post to hidden (that takes the page down and loses its rankings), change a live post's handle (if they approve it, set `redirectNewHandle: true`), or delete a post.
+
+**Refresh mode on Shopify:** update the live post in place with `articleUpdate`, sending only the fields that change. Leave `isPublished` and `publishDate` out of the call, so the post stays live on its original date.

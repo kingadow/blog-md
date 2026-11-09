@@ -24,6 +24,23 @@ Every account this part uses is in [What you need](../README.md#what-you-need) i
 > What still applies: Steps 1, 2 and 6 once the site is online. Run the audit (Steps 3 to 5) once
 > you have a few posts, and fill in the titles, descriptions and alt text on each post you write.
 
+> **On Shopify**
+>
+> Shopify handles part of Step 4 for you, and the rest lives in the admin:
+> - **Titles and descriptions (4b):** each blog post has its own page title and meta description
+>   in its search engine listing. Through the API they are the metafields `global.title_tag` and
+>   `global.description_tag`.
+> - **Alt text (4c):** the post's featured image has its own alt text (`image.altText` through the
+>   API). Images inside the post carry theirs in the post's HTML.
+> - **Sitemap (4d):** Shopify makes it and keeps it current at `/sitemap.xml`, with your blog
+>   posts in it. Submit that address in Step 1. `robots.txt` is automatic too.
+> - **Addresses:** every post lives at `/blogs/<blog>/<post>`. When you change an address, add a
+>   redirect in **Content** > **Menus** > **View URL redirects** (older guides say Online Store >
+>   Navigation). A redirect only works on an address that no longer loads a page.
+>
+> Scheduling, the upcoming posts list and the publish-day email are in
+> [Part 4 on Shopify](4-automate-shopify.md).
+
 ---
 
 ## What this looked like on kingadow.com

@@ -6,6 +6,10 @@
  * Klaviyo campaign for it (subject, preview text, an email from template.html)
  * and schedules it for your send time, 09:15 by default, in your time zone.
  *
+ * It also reads Atom feeds, the kind a Shopify blog has at
+ * https://your-store.com/blogs/<blog>.atom. Set FEED to that address. The
+ * shopify/email folder in the blog-md kit has the setup for Shopify.
+ *
  *   node scripts/blog-email/send.mjs --dry-run   show the plan, change nothing
  *   node scripts/blog-email/send.mjs             create and schedule the email
  *
@@ -26,9 +30,10 @@
  *   SITE_URL             your live address         (default: url)
  *   SEND_TIME            HH:MM, 24-hour            (default: email.sendTime)
  *   TIMEZONE             e.g. America/New_York     (default: timezone)
- *   FEED                 a file path or address for the RSS feed. Default:
- *                        SITE_URL/rss.xml. A dry run uses dist/rss.xml when
- *                        it exists, so it needs no network at all.
+ *   FEED                 a file path or address for the RSS or Atom feed.
+ *                        Default: SITE_URL/rss.xml. A dry run uses
+ *                        dist/rss.xml when it exists, so it needs no network
+ *                        at all.
  *
  * The post is published by the weekly build, and this script only announces
  * it. Every check below exists so that a subscriber never gets a link to a
@@ -284,7 +289,90 @@ function parseItem(item) {
   };
 }
 
+// ------------------------------------------------------------ Atom feeds
+//
+// A Shopify blog publishes an Atom feed. Each post is an <entry> with a
+// <link rel="alternate" href="...">, a <published> time with its own time
+// zone, and the text as escaped HTML in <summary> and <content>. Shopify does
+// not document which elements its feed holds, so every field below has a
+// fallback.
+
+/** The value of one attribute in a tag's attribute text, or undefined. */
+function attr(attrs, name) {
+  const m = attrs.match(new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`));
+  return m ? decodeXml(m[1] ?? m[2]) : undefined;
+}
+
+/** Escaped HTML from a feed as plain text on one line. */
+function htmlToText(html) {
+  return decodeXml(
+    String(html)
+      .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;|&#160;/g, " ")
+  )
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** A full address for an image URL that may start with // (Shopify's CDN does). */
+function absoluteUrl(url, base) {
+  if (!url) return null;
+  if (url.startsWith("//")) return `https:${url}`;
+  try {
+    return new URL(url, base).href;
+  } catch {
+    return null;
+  }
+}
+
+function parseEntry(entry) {
+  const links = [...entry.matchAll(/<link\b([^>]*?)\/?>/g)].map((m) => m[1]);
+  const page = links.find((l) => (attr(l, "rel") ?? "alternate") === "alternate");
+  const link = page ? attr(page, "href") : null;
+  if (!link) return null;
+
+  const summaryHtml = tag(entry, "summary") ?? "";
+  const contentHtml = tag(entry, "content") ?? "";
+  const excerpt = htmlToText(summaryHtml) || previewText(htmlToText(contentHtml), 300);
+
+  // The image: a media or enclosure element if the feed has one, else the
+  // first image in the summary, else the first image in the content.
+  const enclosure = links.find((l) => attr(l, "rel") === "enclosure" && /^image\//.test(attr(l, "type") ?? ""));
+  const media = entry.match(/<media:(?:thumbnail|content)\b([^>]*?)\/?>/);
+  const firstImg = (html) => {
+    const m = html.match(/<img\b[^>]*?\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)')/i);
+    return m ? m[1] ?? m[2] : null;
+  };
+  const image = absoluteUrl(
+    (enclosure && attr(enclosure, "href")) ||
+      (media && attr(media[1], "url")) ||
+      firstImg(summaryHtml) ||
+      firstImg(contentHtml),
+    link
+  );
+
+  const category = entry.match(/<category\b([^>]*?)\/?>/);
+  const published = tag(entry, "published") ?? tag(entry, "updated");
+  return {
+    title: htmlToText(tag(entry, "title") ?? ""),
+    excerpt,
+    url: link,
+    slug: link.replace(/[?#].*$/, "").replace(/\/$/, "").split("/").pop(),
+    category: (category && attr(category[1], "term")) || "Blog",
+    image,
+    // An Atom date carries its own time and zone, for example
+    // 2026-11-26T06:00:00-05:00. The post's day is that moment's calendar
+    // date in your time zone.
+    dateIso: published && !Number.isNaN(Date.parse(published)) ? dateIn(TIMEZONE, new Date(published)).iso : null,
+  };
+}
+
 function feedItems(xml) {
+  if (/<feed\b[^>]*>/.test(xml) && /<entry\b/.test(xml)) {
+    return [...xml.matchAll(/<entry\b[^>]*>([\s\S]*?)<\/entry>/g)].map((m) => parseEntry(m[1])).filter(Boolean);
+  }
   return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m) => parseItem(m[1])).filter(Boolean);
 }
 
