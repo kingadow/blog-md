@@ -1,0 +1,68 @@
+---
+// The About page, at /about/. It reads your name, your bio and your main
+// action (`cta`) from src/site.config.mjs, so a new site has a working About
+// page from the start. Change the words there.
+//
+// Want a longer page? Write it below the bio. Readers who land on a post
+// often check who wrote it before they trust it, so say who you help and how.
+//
+// Ask Claude: "Rewrite my About page from the notes below. Keep it under 300
+// words and end with my main action."
+import Base from "../layouts/Base.astro";
+import Subscribe from "../components/Subscribe.astro";
+import site from "../site.config.mjs";
+
+const { author, cta } = site;
+
+// Structured data: tells search engines this page is about you, and links
+// your other profiles to it.
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  mainEntity: {
+    "@type": "Person",
+    name: author.name,
+    description: author.bio,
+    url: new URL("/about/", site.url).href,
+    ...(author.sameAs?.length ? { sameAs: author.sameAs } : {}),
+  },
+};
+---
+
+<Base title={`About | ${site.name}`} description={author.bio}>
+  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)} />
+
+  <section class="section">
+    <div class="about">
+      <span class="eyebrow">About</span>
+      <h1>{author.name}</h1>
+      <p class="about-bio">{author.bio}</p>
+      <p class="about-actions">
+        {cta && <a class="button" href={cta.url}>{cta.label}</a>}
+        <a href="/blog/">Read the blog</a>
+      </p>
+    </div>
+  </section>
+
+  <Subscribe source="About" />
+</Base>
+
+<style>
+  .about {
+    max-width: var(--width-text);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+
+  .about-bio {
+    font-size: 1.15rem;
+  }
+
+  .about-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+    margin-top: 28px;
+  }
+</style>

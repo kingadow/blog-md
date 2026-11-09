@@ -1,0 +1,32 @@
+# Build output. Netlify builds its own copy, so this never goes in git.
+dist/
+.astro/
+
+# Packages. `npm install` brings them back from package-lock.json.
+node_modules/
+
+# Keys and passwords live in GitHub secrets, never in a file in the repo.
+.env
+.env.*
+
+# The email preview written by `npm run email:dry-run`.
+scripts/blog-email/preview.html
+
+# Logs and editor files
+npm-debug.log*
+.DS_Store
+.idea/
+.vscode/
+.netlify/
+
+# Working folders from the blog-pipeline skill: briefs, research and notes,
+# which can hold figures from client calls. They stay on your computer.
+# If your repository is private and you want them backed up on GitHub,
+# delete the next line.
+posts/
+
+# Your own material (BLOG.md section 4): notes and call notes, which can
+# hold figures from client calls. They stay on your computer.
+# If your repository is private and you want them backed up on GitHub,
+# delete the next line.
+notes/

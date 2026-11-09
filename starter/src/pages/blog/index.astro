@@ -1,0 +1,51 @@
+---
+// The blog index: the Upcoming Posts list first, then every live post.
+import Base from "../../layouts/Base.astro";
+import PostCard from "../../components/PostCard.astro";
+import UpcomingPosts from "../../components/UpcomingPosts.astro";
+import Subscribe from "../../components/Subscribe.astro";
+import { getPublishedPosts } from "../../lib/posts";
+import site from "../../site.config.mjs";
+
+// Live posts only, newest first. Scheduled posts appear in UpcomingPosts.
+const posts = await getPublishedPosts();
+---
+
+<Base title={`Blog | ${site.name}`} description={site.description}>
+  <section class="section blog-hero">
+    <div class="container">
+      <span class="eyebrow">Blog</span>
+      <h1>{site.name}</h1>
+      <p class="muted">{site.description}</p>
+    </div>
+  </section>
+
+  <!-- Leaves the page out entirely when nothing is scheduled. -->
+  <UpcomingPosts />
+
+  <section class="section">
+    <div class="container">
+      <h2>All posts</h2>
+      {posts.length > 0 ? (
+        <div class="post-grid">
+          {posts.map((post) => <PostCard post={post} />)}
+        </div>
+      ) : (
+        <p class="muted">The first post is on its way.</p>
+      )}
+    </div>
+  </section>
+
+  <Subscribe source="Blog Index" />
+</Base>
+
+<style>
+  .blog-hero {
+    padding-bottom: 0;
+  }
+
+  .blog-hero p {
+    max-width: 620px;
+    margin: 0;
+  }
+</style>

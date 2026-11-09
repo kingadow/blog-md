@@ -1,0 +1,170 @@
+---
+// Email subscribe form. Adds the reader to your Klaviyo list straight from
+// the browser, so the site needs no server.
+//
+// Set it up in src/site.config.mjs: `email.klaviyoPublicKey` and
+// `email.listId`. Until both are filled in, a note under the form says it is
+// not connected yet, and the form sends nothing. The note shows on the page
+// in `npm run dev` and in the built site, so you can see it before anyone
+// tries to subscribe.
+//
+// Using another email tool? Most of them (Mailchimp, Kit, Beehiiv,
+// MailerLite and others) give you an embed form or a form address. Replace
+// the `fetch(...)` call in the script below with a POST to that address, or
+// swap this whole component for the embed code your tool gives you. Keep the
+// honeypot field: it catches most bot sign-ups.
+//
+// Ask Claude: "Switch src/components/Subscribe.astro from Klaviyo to
+// [your tool]. Here is the form embed code: ..."
+import site from "../site.config.mjs";
+
+interface Props {
+  /** Unique per page, when the form appears twice on one page. */
+  id?: string;
+  heading?: string;
+  body?: string;
+  /** Where the form sits. Saved on the subscriber in Klaviyo. */
+  source?: string;
+  /** "band": full-width section. "inline": no background, for use inside another box. */
+  variant?: "band" | "inline";
+}
+
+const {
+  id = "subscribe",
+  heading = "Get new posts by email",
+  body = `One email when a new post goes live, every ${site.publishDay}.`,
+  source = "Blog",
+  variant = "band",
+} = Astro.props;
+
+// True while either setting still holds its YOUR_... placeholder.
+const notConnected =
+  /^YOUR_/.test(site.email.klaviyoPublicKey ?? "YOUR_") || /^YOUR_/.test(site.email.listId ?? "YOUR_");
+
+const config = {
+  id,
+  source,
+  publicKey: site.email.klaviyoPublicKey,
+  listId: site.email.listId,
+};
+---
+
+<section class={variant === "band" ? "subscribe-band" : ""} aria-labelledby={`${id}-heading`}>
+  <div class:list={["subscribe", { container: variant === "band" }]}>
+    <div class="subscribe-copy">
+      <span class="eyebrow">Subscribe</span>
+      <h2 id={`${id}-heading`}>{heading}</h2>
+      <p>{body}</p>
+    </div>
+
+    <form id={id} class="subscribe-form" novalidate>
+      <label class="visually-hidden" for={`${id}-email`}>Email address</label>
+      <input
+        type="email"
+        id={`${id}-email`}
+        name="email"
+        placeholder="Email address"
+        autocomplete="email"
+        required
+      />
+      <!-- Honeypot: hidden from people, filled in by bots. -->
+      <div class="honeypot" aria-hidden="true">
+        <label for={`${id}-website`}>Leave this empty</label>
+        <input type="text" id={`${id}-website`} name="website" tabindex="-1" autocomplete="off" />
+      </div>
+      <button type="submit" class="button" id={`${id}-button`}>Subscribe</button>
+      <p class="subscribe-status" id={`${id}-status`} role="status" aria-live="polite">
+        Unsubscribe any time.
+      </p>
+      {notConnected && (
+        <p class="subscribe-setup-note">
+          This form is not connected yet: add your Klaviyo public key and list ID in src/site.config.mjs. Until then, it sends nothing.
+        </p>
+      )}
+    </form>
+  </div>
+</section>
+
+<script is:inline define:vars={{ config }}>
+  (function () {
+    var form = document.getElementById(config.id);
+    if (!form) return;
+    var email = document.getElementById(config.id + "-email");
+    var honeypot = document.getElementById(config.id + "-website");
+    var button = document.getElementById(config.id + "-button");
+    var status = document.getElementById(config.id + "-status");
+
+    var notSetUp = /^YOUR_/.test(config.publicKey) || /^YOUR_/.test(config.listId);
+
+    function say(text, state) {
+      status.textContent = text;
+      if (state) status.setAttribute("data-state", state);
+      else status.removeAttribute("data-state");
+    }
+
+    function done() {
+      form.querySelectorAll("input, button").forEach(function (el) {
+        el.disabled = true;
+      });
+      say("You're on the list. Watch your inbox for the next post.", "success");
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      if (!email.value || !email.checkValidity()) {
+        say("Please enter a valid email address.");
+        email.focus();
+        return;
+      }
+
+      // A bot filled in the hidden field. Show success so it does not retry.
+      if (honeypot.value) {
+        done();
+        return;
+      }
+
+      if (notSetUp) {
+        say("This form is not connected yet, so nothing was sent.");
+        return;
+      }
+
+      button.disabled = true;
+      say("Sending...");
+
+      // Klaviyo client subscriptions API. Uses only the public key, which is
+      // safe in the browser. Klaviyo retires an API revision 2 years after its
+      // release date, so move this forward before 2027-10-15.
+      fetch("https://a.klaviyo.com/client/subscriptions/?company_id=" + encodeURIComponent(config.publicKey), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", revision: "2025-10-15" },
+        body: JSON.stringify({
+          data: {
+            type: "subscription",
+            attributes: {
+              custom_source: config.source,
+              profile: {
+                data: {
+                  type: "profile",
+                  attributes: {
+                    email: email.value,
+                    properties: { blog_subscribe_source: config.source },
+                  },
+                },
+              },
+            },
+            relationships: { list: { data: { type: "list", id: config.listId } } },
+          },
+        }),
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("Klaviyo responded " + res.status);
+          done();
+        })
+        .catch(function () {
+          button.disabled = false;
+          say("Something went wrong. Please try again.");
+        });
+    });
+  })();
+</script>

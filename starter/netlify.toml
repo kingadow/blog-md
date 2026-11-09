@@ -1,0 +1,10 @@
+# Netlify reads this file on every build, so you do not have to type these
+# settings into the Netlify dashboard.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Astro 5 needs Node 20.3 or newer.
+  NODE_VERSION = "22"

@@ -1,0 +1,25 @@
+---
+// One post in a grid: image, category, title, date and excerpt.
+import { formatDate, type Post } from "../lib/posts";
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+const href = `/blog/${post.id}/`;
+---
+
+<article class="post-card">
+  <a href={href} tabindex="-1" aria-hidden="true">
+    <img src={post.data.image} alt="" loading="lazy" width="1200" height="630" />
+  </a>
+  <div class="post-card-body">
+    <span class="eyebrow">{post.data.category}</span>
+    <h3><a href={href}>{post.data.title}</a></h3>
+    <p class="muted">
+      <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+    </p>
+    <p>{post.data.excerpt}</p>
+  </div>
+</article>

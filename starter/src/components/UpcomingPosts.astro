@@ -1,0 +1,285 @@
+---
+// Upcoming Posts: the "ticker" on the blog index.
+//
+// A list of scheduled post dates on the left, the selected post's image,
+// title and excerpt on the right, and a subscribe row under both. It gives a
+// new reader a reason to subscribe: they can see what is coming next.
+//
+// It reads future-dated posts from src/lib/posts.ts, so you never edit it by
+// hand. Write a post, give it a future date, and it appears here. On the
+// build that publishes it, it leaves this list and joins the blog. When
+// nothing is scheduled, the whole section is left out of the page.
+//
+// Keyboard: Tab moves into the list, the arrow keys move between dates,
+// Home and End jump to the first and last. It follows the standard "tabs"
+// pattern, so screen readers announce it as a list of tabs.
+import Subscribe from "./Subscribe.astro";
+import { getUpcomingPosts, formatDate } from "../lib/posts";
+import site from "../site.config.mjs";
+
+const upcoming = await getUpcomingPosts(6);
+---
+
+{upcoming.length > 0 && (
+  <section class="section upcoming" aria-labelledby="upcoming-heading">
+    <div class="container">
+      <h2 id="upcoming-heading">Upcoming Posts</h2>
+      <p class="muted upcoming-intro">
+        What's on the schedule. A new post goes live every {site.publishDay}.
+      </p>
+
+      <div class="upcoming-card">
+        <div class="upcoming-grid">
+          <div class="upcoming-list-wrap">
+            <div class="upcoming-list" role="tablist" aria-label="Upcoming posts" aria-orientation="vertical">
+              {upcoming.map((post, i) => (
+                <button
+                  type="button"
+                  role="tab"
+                  id={`upcoming-tab-${post.id}`}
+                  aria-controls={`upcoming-panel-${post.id}`}
+                  aria-selected={i === 0 ? "true" : "false"}
+                  tabindex={i === 0 ? 0 : -1}
+                  class="upcoming-item"
+                  data-upcoming-tab
+                >
+                  <span class="date-chip" aria-hidden="true">
+                    <span class="date-chip-month">{formatDate(post.data.date, { month: "short" })}</span>
+                    <span class="date-chip-day">{formatDate(post.data.date, { day: "numeric" })}</span>
+                  </span>
+                  <span class="upcoming-item-text">
+                    <span class="upcoming-item-title">{post.data.title}</span>
+                    <span class="upcoming-item-date">
+                      {formatDate(post.data.date, { weekday: "long", month: "long", day: "numeric" })}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div class="upcoming-panels">
+            {upcoming.map((post, i) => (
+              <div
+                role="tabpanel"
+                id={`upcoming-panel-${post.id}`}
+                aria-labelledby={`upcoming-tab-${post.id}`}
+                class="upcoming-panel"
+                hidden={i !== 0}
+              >
+                <img
+                  src={post.data.image}
+                  alt={post.data.imageAlt ?? ""}
+                  width="1200"
+                  height="630"
+                  loading="lazy"
+                />
+                <span class="eyebrow">
+                  {post.data.category} &middot; {formatDate(post.data.date, { weekday: "long", month: "long", day: "numeric" })}
+                </span>
+                <h3>{post.data.title}</h3>
+                <p class="muted">{post.data.excerpt}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="upcoming-subscribe">
+          <Subscribe
+            id="upcoming-subscribe"
+            variant="inline"
+            source="Upcoming Posts"
+            heading="Get an email when the next post goes live."
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .upcoming-intro {
+    margin: 0 0 24px;
+  }
+
+  .upcoming-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .upcoming-grid {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+  }
+
+  /* The list scrolls inside its column, so it always matches the height of
+     the description panel next to it. */
+  .upcoming-list-wrap {
+    position: relative;
+    border-right: 1px solid var(--color-border);
+  }
+
+  .upcoming-list {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+  }
+
+  .upcoming-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 18px;
+    border: 0;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .upcoming-item:hover {
+    background: var(--color-surface);
+  }
+
+  .upcoming-item[aria-selected="true"] {
+    background: var(--color-accent-soft);
+    box-shadow: inset 3px 0 0 var(--color-accent);
+  }
+
+  .upcoming-item:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  .date-chip {
+    flex: 0 0 48px;
+    padding: 6px 0;
+    border-radius: 8px;
+    background: var(--color-surface);
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  .upcoming-item[aria-selected="true"] .date-chip {
+    background: var(--color-accent);
+    color: var(--color-accent-text);
+  }
+
+  .date-chip-month {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .date-chip-day {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .upcoming-item-text {
+    min-width: 0;
+  }
+
+  .upcoming-item-title {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .upcoming-item-date {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+
+  .upcoming-panels {
+    background: var(--color-surface);
+  }
+
+  .upcoming-panel {
+    padding: 24px 28px 28px;
+  }
+
+  .upcoming-panel img {
+    width: 100%;
+    aspect-ratio: 1200 / 630;
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    margin-bottom: 18px;
+    background: var(--color-bg);
+  }
+
+  .upcoming-panel h3 {
+    margin: 6px 0 8px;
+    font-size: 1.3rem;
+  }
+
+  .upcoming-panel p {
+    margin: 0;
+  }
+
+  .upcoming-subscribe {
+    border-top: 1px solid var(--color-border);
+    padding: 22px 24px;
+  }
+
+  @media (max-width: 760px) {
+    .upcoming-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .upcoming-list-wrap {
+      border-right: 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .upcoming-list {
+      position: static;
+      max-height: 260px;
+    }
+
+    .upcoming-panel {
+      padding: 20px;
+    }
+  }
+</style>
+
+<script>
+  // Switches the description panel when a date is clicked or chosen with the
+  // keyboard. Without JavaScript the first post's description still shows.
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-upcoming-tab]"));
+
+  function select(tab: HTMLButtonElement, moveFocus = false) {
+    for (const t of tabs) {
+      const on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      const panel = document.getElementById(t.getAttribute("aria-controls") ?? "");
+      if (panel) panel.hidden = !on;
+    }
+    if (moveFocus) tab.focus();
+  }
+
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => select(tab));
+    tab.addEventListener("keydown", (event) => {
+      let next = -1;
+      if (event.key === "ArrowDown" || event.key === "ArrowRight") next = (i + 1) % tabs.length;
+      if (event.key === "ArrowUp" || event.key === "ArrowLeft") next = (i - 1 + tabs.length) % tabs.length;
+      if (event.key === "Home") next = 0;
+      if (event.key === "End") next = tabs.length - 1;
+      if (next < 0) return;
+      event.preventDefault();
+      select(tabs[next], true);
+    });
+  });
+</script>

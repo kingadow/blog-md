@@ -1,0 +1,78 @@
+name: Weekly publish
+
+# Rebuilds the site once a week so scheduled posts go live on their date.
+#
+# Posts dated in the future are left out of every build (see
+# src/lib/posts.ts). The site only changes when it is rebuilt, so something
+# has to run a build on the publish day. This workflow does that: it asks
+# Netlify to build, and the build includes every post dated today or earlier.
+#
+# Needs 1 secret: NETLIFY_BUILD_HOOK (see the starter README, step 5).
+
+on:
+  schedule:
+    # WHEN THE WEEKLY BUILD RUNS
+    #
+    # The live line, at the end of this block, runs the build on your publish
+    # day at 09:37 UTC. That is 4:37am or 5:37am in New York, depending on
+    # daylight saving. GitHub reads it in UTC only.
+    #
+    # How to read it. The 5 parts, left to right: the minute (37), the hour
+    # in UTC (9), any day of the month (*), any month (*), and the day of
+    # the week, the last number.
+    # Day numbers: 0 Sunday, 1 Monday, 2 Tuesday, 3 Wednesday, 4 Thursday,
+    # 5 Friday, 6 Saturday. The starter README, step 5, has the full line for
+    # each day.
+    #
+    # To change the publish day, change only the last number on the live
+    # line, the one that is not a comment. The publish day lives in 3 places.
+    # Change all 3 together:
+    #   1. the live line below
+    #   2. `publishDay` in src/site.config.mjs (the day shown on the site)
+    #   3. the publish day line in your BLOG.md, if you have one
+    # Ask Claude: "Change my publish day to Tuesday in all 3 places. In
+    # publish.yml, change only the live cron line."
+    #
+    # Why so early, and why 37 minutes past:
+    #   - On the free plan, scheduled runs wait in a queue and often start
+    #     15 to 60 minutes late. Runs set on the hour wait longest, since
+    #     that is when most scheduled jobs start, and runs 4 to 10 hours late
+    #     have happened. A time off the hour waits less, so keep the 37.
+    #   - The publish-day email is scheduled for 09:15 in your time zone, and
+    #     the post has to be live before then. Building a few hours earlier
+    #     leaves room for a late start plus the build itself. Nobody sees the
+    #     post before the email anyway.
+    #   - If you move this later, move `email.sendTime` in
+    #     src/site.config.mjs later too.
+    #   - Outside the Americas, 09:37 UTC comes after 09:15 your time. Ask
+    #     Claude to change the hour so the build runs a few hours before
+    #     your send time.
+    #
+    # GitHub turns off scheduled workflows in a public repository after 60
+    # days with no commits. A new post every week counts as activity. After a
+    # long break, check the Actions tab and turn the workflow back on.
+    - cron: "37 9 * * 4" # <- the live line: the last number is your publish day
+
+  # Adds a "Run workflow" button in the Actions tab, to publish now without
+  # waiting for the schedule.
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Ask Netlify to build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the Netlify build hook
+        env:
+          NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
+        run: |
+          if [ -z "$NETLIFY_BUILD_HOOK" ]; then
+            echo "::error::The NETLIFY_BUILD_HOOK secret is missing."
+            echo "1. In Netlify, open your site's configuration, then Build & deploy,"
+            echo "   then Build hooks. Add a hook for your main branch and copy its address."
+            echo "2. In GitHub, open Settings > Secrets and variables > Actions >"
+            echo "   New repository secret. Name it NETLIFY_BUILD_HOOK and paste the address."
+            exit 1
+          fi
+          curl -fsS --retry 3 --retry-delay 10 -X POST -d '{}' "$NETLIFY_BUILD_HOOK" > /dev/null
+          echo "Build started on Netlify."

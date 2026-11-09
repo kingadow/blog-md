@@ -1,0 +1,88 @@
+---
+// The frame around every page: the <head> tags search engines and social
+// networks read, the header and the footer.
+import "../styles/global.css";
+import site from "../site.config.mjs";
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Full address of the share image. */
+  image?: string;
+  type?: "website" | "article";
+  publishedTime?: string;
+  modifiedTime?: string;
+}
+
+const {
+  title,
+  description = site.description,
+  image,
+  type = "website",
+  publishedTime,
+  modifiedTime,
+} = Astro.props;
+
+// The one address search engines should index for this page.
+const canonical = new URL(Astro.url.pathname, site.url).href;
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!-- Link previews on LinkedIn, Facebook, Slack and others -->
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {image && <meta property="og:image" content={image} />}
+    {image && <meta property="og:image:width" content="1200" />}
+    {image && <meta property="og:image:height" content="630" />}
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+
+    <!-- Link previews on X -->
+    <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {image && <meta name="twitter:image" content={image} />}
+
+    <!-- Extra tags from a page, such as a post's structured data -->
+    <slot name="head" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a class="site-name" href="/">{site.name}</a>
+        <nav class="site-nav" aria-label="Main">
+          <a href="/">Home</a>
+          <a href="/blog/">Blog</a>
+          <a href="/about/">About</a>
+          <a href="/rss.xml">RSS</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>&copy; {year} {site.author.name}</span>
+        <span><a href="/blog/">All posts</a> &middot; <a href="/rss.xml">RSS feed</a></span>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f6f7f9"/>
+  <text x="80" y="130" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="2" fill="#2f5bd3">HOW IT WORKS</text>
+  <text x="80" y="210" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="64" font-weight="700" fill="#1d2129">Why every post gets a date</text>
+  <line x1="120" y1="400" x2="1080" y2="400" stroke="#c9ced6" stroke-width="4" stroke-linecap="round"/>
+  <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" text-anchor="middle">
+    <circle cx="220" cy="400" r="22" fill="#2f5bd3"/>
+    <text x="220" y="350" font-size="26" font-weight="700" fill="#1d2129">Oct 29</text>
+    <text x="220" y="460" font-size="22" fill="#1f7a4d" font-weight="600">Live</text>
+    <circle cx="460" cy="400" r="22" fill="#2f5bd3"/>
+    <text x="460" y="350" font-size="26" font-weight="700" fill="#1d2129">Nov 5</text>
+    <text x="460" y="460" font-size="22" fill="#1f7a4d" font-weight="600">Live</text>
+    <line x1="680" y1="300" x2="680" y2="500" stroke="#1d2129" stroke-width="3" stroke-dasharray="8 8"/>
+    <rect x="590" y="510" width="180" height="44" rx="22" fill="#1d2129"/>
+    <text x="680" y="540" font-size="20" font-weight="600" fill="#ffffff">Build runs</text>
+    <circle cx="920" cy="400" r="22" fill="#ffffff" stroke="#2f5bd3" stroke-width="5"/>
+    <text x="920" y="350" font-size="26" font-weight="700" fill="#1d2129">Nov 26</text>
+    <text x="920" y="460" font-size="22" fill="#5b6270" font-weight="600">Scheduled</text>
+  </g>
+</svg>

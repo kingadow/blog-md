@@ -1,0 +1,129 @@
+<!--
+  The publish-day email. send.mjs fills in the [[TOKENS]] below from the
+  newest post and uploads the result to Klaviyo as a new template.
+
+  Edit this file to change the email for every week. Editing the copy inside
+  Klaviyo changes only that one week's send.
+
+  The tokens use double square brackets on purpose. Klaviyo's own template
+  language uses double curly braces and would turn anything unknown in curly
+  braces into empty text. These are replaced before upload, so none reach
+  Klaviyo. The 2 curly-brace tags near the end are real Klaviyo tags: the
+  unsubscribe link, and your business address from your Klaviyo account
+  settings, which the law in many countries requires in marketing email.
+
+  Tokens:
+    [[SITE_NAME]]      from src/site.config.mjs
+    [[SITE_URL]]       from src/site.config.mjs
+    [[AUTHOR_NAME]]    the sender name from src/site.config.mjs
+    [[POST_TITLE]]     the post title
+    [[POST_EXCERPT]]   the post excerpt
+    [[PREVIEW_TEXT]]   the excerpt cut to 150 characters at the end of a
+                       word: the line the inbox shows under the subject
+    [[POST_CATEGORY]]  the post category
+    [[POST_URL]]       full address of the post
+    [[IMAGE_BLOCK]]    a row with the post image, or nothing when the post
+                       only has an SVG (most email apps cannot show SVG)
+
+  Colors match the defaults in src/styles/global.css. Email apps ignore CSS
+  variables, so change them here too when you rebrand.
+
+  This comment is removed before upload and never reaches the inbox.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>[[POST_TITLE]]</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#f6f7f9;">
+    <!-- Preview text: shown in the inbox list, hidden in the email itself. -->
+    <div style="display:none; font-size:1px; color:#f6f7f9; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
+      [[PREVIEW_TEXT]]
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f6f7f9;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:100%; background-color:#ffffff; border:1px solid #e3e6eb; border-radius:10px; overflow:hidden;">
+
+            <!-- Site name -->
+            <tr>
+              <td style="padding:28px 40px 24px 40px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:18px; font-weight:700; color:#1d2129;">
+                <a href="[[SITE_URL]]" style="color:#1d2129; text-decoration:none;">[[SITE_NAME]]</a>
+              </td>
+            </tr>
+
+            [[IMAGE_BLOCK]]
+
+            <!-- Category -->
+            <tr>
+              <td style="padding:32px 40px 0 40px;">
+                <p style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:12px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#2f5bd3;">
+                  [[POST_CATEGORY]]
+                </p>
+              </td>
+            </tr>
+
+            <!-- Title -->
+            <tr>
+              <td style="padding:10px 40px 0 40px;">
+                <h1 style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:26px; line-height:34px; font-weight:700; color:#1d2129;">
+                  [[POST_TITLE]]
+                </h1>
+              </td>
+            </tr>
+
+            <!-- Excerpt -->
+            <tr>
+              <td style="padding:16px 40px 0 40px;">
+                <p style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; line-height:26px; color:#1d2129;">
+                  [[POST_EXCERPT]]
+                </p>
+              </td>
+            </tr>
+
+            <!-- Button -->
+            <tr>
+              <td style="padding:28px 40px 36px 40px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" bgcolor="#2f5bd3" style="border-radius:10px;">
+                      <a href="[[POST_URL]]" style="display:inline-block; padding:14px 28px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none; border-radius:10px;">
+                        Read the post
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Sign-off -->
+            <tr>
+              <td style="padding:0 40px 32px 40px; border-top:1px solid #e3e6eb;">
+                <p style="margin:24px 0 0 0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; line-height:24px; color:#1d2129;">
+                  [[AUTHOR_NAME]]
+                </p>
+              </td>
+            </tr>
+
+          </table>
+
+          <!-- Footer -->
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:100%;">
+            <tr>
+              <td align="center" style="padding:24px 32px 32px 32px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:12px; line-height:20px; color:#5b6270;">
+                You are getting this email because you subscribed to new posts from [[SITE_NAME]].<br />
+                {% unsubscribe 'Unsubscribe' %}<br />
+                {{ organization.full_address }}
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

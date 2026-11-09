@@ -1,0 +1,43 @@
+---
+// Home page: who you are in one line, and your newest posts.
+// Replace the intro with your own words.
+import Base from "../layouts/Base.astro";
+import PostCard from "../components/PostCard.astro";
+import Subscribe from "../components/Subscribe.astro";
+import { getPublishedPosts } from "../lib/posts";
+import site from "../site.config.mjs";
+
+const latest = (await getPublishedPosts()).slice(0, 3);
+---
+
+<Base title={site.name}>
+  <section class="section">
+    <div class="container">
+      <span class="eyebrow">{site.author.name}</span>
+      <h1>{site.name}</h1>
+      <p class="muted home-intro">{site.description}</p>
+    </div>
+  </section>
+
+  {latest.length > 0 && (
+    <section class="section">
+      <div class="container">
+        <h2>Latest posts</h2>
+        <div class="post-grid">
+          {latest.map((post) => <PostCard post={post} />)}
+        </div>
+        <p><a href="/blog/">See all posts</a></p>
+      </div>
+    </section>
+  )}
+
+  <Subscribe source="Home" />
+</Base>
+
+<style>
+  .home-intro {
+    max-width: 620px;
+    font-size: 1.15rem;
+    margin: 0;
+  }
+</style>

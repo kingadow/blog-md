@@ -1,0 +1,20 @@
+{
+  "name": "blog-md-starter",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "email:dry-run": "node scripts/blog-email/send.mjs --dry-run"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.18",
+    "@astrojs/sitemap": "^3.7.0",
+    "astro": "^5.17.1"
+  },
+  "engines": {
+    "node": ">=20.3.0"
+  }
+}

@@ -1,0 +1,119 @@
+---
+// One page per live post, at /blog/<file-name>/.
+import { render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PostCard from "../../components/PostCard.astro";
+import Subscribe from "../../components/Subscribe.astro";
+import { getPublishedPosts, formatDate, type Post } from "../../lib/posts";
+import { shareUrl } from "../../lib/share-image";
+import site from "../../site.config.mjs";
+
+export async function getStaticPaths() {
+  // The gate that matters most: a post left out here never gets a page, so it
+  // cannot be visited, shared or listed in the sitemap before its date.
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const data = post.data;
+
+const postUrl = new URL(`/blog/${post.id}/`, site.url).href;
+const image = shareUrl(data.image);
+const authorName = data.author ?? site.author.name;
+const isSiteAuthor = authorName === site.author.name;
+
+const words = post.body?.split(/\s+/).filter(Boolean).length ?? 0;
+const minutes = Math.max(1, Math.round(words / 225));
+
+// Related posts: same category first, then the newest others. Uses the same
+// gate, so a scheduled post never shows up here early.
+const others = (await getPublishedPosts()).filter((p) => p.id !== post.id);
+const related = [
+  ...others.filter((p) => p.data.category === data.category),
+  ...others.filter((p) => p.data.category !== data.category),
+].slice(0, 3);
+
+// Structured data. Tells search engines this page is a blog post, who wrote
+// it, when, and which image to show.
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+  headline: data.title,
+  description: data.metaDescription ?? data.excerpt,
+  image,
+  author: {
+    "@type": "Person",
+    name: authorName,
+    ...(isSiteAuthor && site.author.url ? { url: new URL(site.author.url, site.url).href } : {}),
+    ...(isSiteAuthor && site.author.sameAs?.length ? { sameAs: site.author.sameAs } : {}),
+  },
+  publisher: { "@type": "Organization", name: site.name, url: site.url },
+  datePublished: data.date.toISOString(),
+  dateModified: (data.updated ?? data.date).toISOString(),
+  wordCount: words,
+  ...(data.keywords.length ? { keywords: data.keywords } : {}),
+  articleSection: data.category,
+  inLanguage: "en-US",
+};
+---
+
+<Base
+  title={data.metaTitle ?? `${data.title} | ${site.name}`}
+  description={data.metaDescription ?? data.excerpt}
+  image={image}
+  type="article"
+  publishedTime={data.date.toISOString()}
+  modifiedTime={(data.updated ?? data.date).toISOString()}
+>
+  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)} />
+
+  <article>
+    <header class="article-header">
+      <a class="eyebrow" href="/blog/">{data.category}</a>
+      <h1>{data.title}</h1>
+      <div class="article-meta">
+        <span>{authorName}</span>
+        <time datetime={(data.updated ?? data.date).toISOString()}>
+          {data.updated ? `Updated ${formatDate(data.updated)}` : formatDate(data.date)}
+        </time>
+        <span>{minutes} min read</span>
+      </div>
+    </header>
+
+    <div class="article-hero">
+      <img src={data.image} alt={data.imageAlt ?? ""} width="1200" height="630" />
+    </div>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <!-- Your main action, from `cta` in src/site.config.mjs. -->
+    {site.cta && (
+      <aside class="post-cta" aria-label="Next step">
+        {site.cta.text && <p>{site.cta.text}</p>}
+        <a class="button" href={site.cta.url}>{site.cta.label}</a>
+      </aside>
+    )}
+  </article>
+
+  <Subscribe source="Blog Post" />
+
+  {related.length > 0 && (
+    <section class="section">
+      <div class="container">
+        <h2>More posts</h2>
+        <div class="post-grid">
+          {related.map((p) => <PostCard post={p} />)}
+        </div>
+      </div>
+    </section>
+  )}
+</Base>
