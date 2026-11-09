@@ -23,6 +23,8 @@ You know things your future clients search for every day. The setup used to need
 
 ## The 4 parts
 
+![The 4 parts: get your site ready, decide what to write, write the post, automate it](examples/kingadow-com/images/four-parts.jpg)
+
 | | Part | What you get |
 |---|---|---|
 | 1 | [Get your site ready for SEO](docs/1-get-your-site-ready.md) | A site Google can read: clean links, titles, descriptions, images and indexing, checked with free tools |

@@ -28,6 +28,8 @@ Every account this part uses is in [What you need](../README.md#what-you-need) i
 
 ## What this looked like on kingadow.com
 
+![The free Ahrefs Site Audit on kingadow.com: 23 issues at the first audit, 9 after the first round of fixes, 6 left that were correct behavior, and a Health Score of 95](../examples/kingadow-com/images/site-audit.jpg)
+
 > On 2026-07-30 the free Ahrefs Site Audit found 23 issues on kingadow.com. After one day of fixes
 > with Claude it found 9, then 6. The last 6 were correct behavior: redirects that exist on purpose,
 > decorative images with empty alt text, and pages with 1 inbound link. On 2026-10-11 the Health

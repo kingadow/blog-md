@@ -20,6 +20,8 @@ brief and research, publish it on its date.
 
 ## The cleanup
 
+![23 issues, then 9, then 6, and a Health Score of 95](images/site-audit.jpg)
+
 Before the first weekly post, the site was cleaned up with the free Ahrefs Site Audit and Claude.
 The steps are in [Part 1](../../docs/1-get-your-site-ready.md).
 
@@ -56,6 +58,8 @@ retitled to own it, and the other 2 now link to it.
 
 ## The results
 
+![13 weeks before and after weekly posts: times shown in Google 250 to 457 a week (+83%), clicks 3.8 to 6.3 (+66%), site page views 143 to 192 (+34%)](images/results.jpg)
+
 13 weeks before weekly posts began compared with the 13 weeks after, per week:
 
 | | May 4 to Jul 27 | Aug 3 to Oct 26 | Change |
@@ -81,6 +85,8 @@ check judges each change after 6 weeks.
 4. **Then publish on a fixed day.** One post a week, on the same day, is a pace you can keep.
 
 ## One post, from topic to published
+
+![The pipeline: one post from the search to Substack and LinkedIn](images/pipeline.jpg)
 
 [`posts/2026-11-26-claude-email-design`](posts/2026-11-26-claude-email-design) is the working folder
 for one real post: its brief, its research, the start of its draft, its image plan and its images.

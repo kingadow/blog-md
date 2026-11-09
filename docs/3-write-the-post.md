@@ -55,6 +55,8 @@ A post Google already shows, with views and no clicks, usually needs a better ti
 
 ## See it on a real post
 
+![One kingadow.com post in 8 steps: the search, the brief, the research, the draft, the image, scheduled in the upcoming posts list, the publish-day email, and the same topic on Substack and LinkedIn](../examples/kingadow-com/images/pipeline.jpg)
+
 [`examples/kingadow-com/posts/2026-11-26-claude-email-design`](../examples/kingadow-com/posts/2026-11-26-claude-email-design) has the brief, research, image plan and images for one kingadow.com post. Its brief uses an earlier layout; the folder's README maps it to the template.
 
 ## Done when
