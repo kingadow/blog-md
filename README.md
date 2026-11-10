@@ -75,7 +75,13 @@ If you already have a site, you may not need Node.js, GitHub or Netlify: [part 4
 
 ## Where it fits
 
-This repo is the system for being found: the site, the topics, the writing and the schedule. What you write about, and what you offer the people who find you, is your expertise. If you sell to e-commerce brands and want help with retention and email, you can find me at [kingadow.com](https://kingadow.com).
+This repo is the system for being found: the site, the topics, the writing and the schedule. What you write about, and what you offer the people who find you, is your expertise. I build retention and email systems for e-commerce brands. **Run a brand on Klaviyo?** I'll audit your Figma file and Klaviyo templates on a free 30-minute call and tell you what to fix first. [Book the audit](https://calendly.com/kingadow/introductory-call-with-kinga-dow) or write to [kinga@kingadow.com](mailto:kinga@kingadow.com).
+
+## More from Kinga Dow
+
+- [email-design-md](https://github.com/kingadow/email-design-md): a design system for email that AI can follow, with a worked example.
+- [Figma Email Design Kit](https://kingadow.com/?utm_source=github&utm_medium=readme&utm_campaign=blog-md#lead-magnet-form): sign up and I'll email you the email design kit and how to get its editable Figma file.
+- [Case studies](https://kingadow.com/case-studies): retention and email systems built for e-commerce brands.
 
 ## License
 
