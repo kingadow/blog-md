@@ -75,7 +75,7 @@ If you already have a site, you may not need Node.js, GitHub or Netlify: [part 4
 
 ## Where it fits
 
-This repo is the system for being found: the site, the topics, the writing and the schedule. What you write about, and what you offer the people who find you, is your expertise. I build retention and email systems for e-commerce brands. **Run a brand on Klaviyo?** I'll audit your Figma file and Klaviyo templates on a free 30-minute call and tell you what to fix first. [Book the audit](https://calendly.com/kingadow/introductory-call-with-kinga-dow) or write to [kinga@kingadow.com](mailto:kinga@kingadow.com).
+This repo is the system for being found: the site, the topics, the writing and the schedule. What you write about, and what you offer the people who find you, is your expertise. I build retention and email systems for e-commerce brands. **Run a brand on Klaviyo?** I'll audit your Figma file and Klaviyo templates on a free 30-minute call and tell you what to fix first. [Book the audit](https://calendly.com/kingadow/figma-klaviyo-template-audit) or write to [kinga@kingadow.com](mailto:kinga@kingadow.com).
 
 ## More from Kinga Dow
 
